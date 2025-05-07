@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web: # the flask application
+    build: .
+    expose:
+    - "5002" # unbided, and exposed to other services in the network
+   # ports:
+   # - "5002:5002"
+    depends_on:
+    - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+  redis:
+    image: "redis:latest"
+    ports:
+    - "6379:6379" 
+    volumes:
+    - redis-data:/data
+#nginx is a load balancer, allows it to handle traffic, in production env. millions of requests get split across multiple instances, and not all to a single instance
+  nginx:
+    image: nginx:latest
+    ports:
+    - "5002:5002" # to make it work on our local machine
+    volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf # mounting a conf file to manage load balancing
+    depends_on:
+    - web
+volumes:
+  redis-data:
